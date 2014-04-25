@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="build/react.js"></script>
+  <script src="build/JSXTransformer.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+  <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  <script src="./vendor/highcharts.js"></script>
+  <script src="./vendor/mori.js"></script>
+
+  <style type="text/css">
+    #resizable { width: 500px; height: 500px; padding: 0.5em; }
+  </style>
+</head>
+
+<body>
+
+  <div id="resizable" class="ui-widget-content">
+    <h3 class="ui-widget-header">Resizable</h3>
+    <div id="example" class="resizable"></div>
+  </div>
+
+  <script type="text/javascript">
+    
+  </script>
+
+  <script type="text/jsx">
+  /** @jsx React.DOM */
+
+  $(function() {
+    $('#resizable').resizable({
+      stop: function() {
+        var newHeight = $(this).height() - 50;
+        var newWidth = $(this).width();
+        console.log(newHeight);
+        console.log(newWidth);
+        chart.setProps({
+          height: newHeight,
+          width: newWidth
+        });
+        console.log(chart);
+      }
+    });
+  });
+
+  var Chart = React.createClass({
+
+    componentWillReceiveProps: function(nextProps) {
+      var chartModel = this.props.chartModel;
+      var nextChartModel = nextProps.chartModel;
+      var width = this.props.width;
+      var nextWidth = nextProps.width;
+      var height = this.props.height;
+      var nextHeight = nextProps.height;
+      if (chartModel !== nextChartModel 
+          || width !== nextWidth
+          || height !== nextHeight) {
+        this.state.chartInstance.destroy();
+        this.initializeChart();
+      }
+    },
+
+    componentDidUpdate: function(prevProps, prevState) {
+      // disable React's render()
+      return false;
+    },
+
+    getUpdatedChartSettings: function() {
+      var chartModel = this.props.chartModel;
+      var selector = this.refs.myChart.getDOMNode();
+      var width = this.props.width || null;
+      var height = this.props.height || null;
+      var chartSettings = mori.get(chartModel, "chart");
+      var updatedChartSettings = mori.assoc(chartSettings,
+                                            "renderTo",
+                                            selector,
+                                            "width",
+                                            width,
+                                            "height",
+                                            height);
+      return updatedChartSettings;
+    },
+
+    initializeChart: function() {
+      var chartModel = this.props.chartModel;
+      var seriesModel = this.props.seriesModel;
+      var updatedChartModel = mori.assoc(chartModel,
+                                    "chart",
+                                    this.getUpdatedChartSettings(),
+                                    "series",
+                                    seriesModel);
+      var chartOptions = mori.clj_to_js(updatedChartModel);
+      var chartInstance = new Highcharts.Chart(chartOptions);
+      this.setState({
+        chartInstance: chartInstance
+      });
+    },
+    
+    render: function() {
+      return (
+        <div ref="myChart"></div>
+      );
+    },
+
+    componentDidMount: function() {
+      this.initializeChart();
+    }
+
+  });
+
+  var seriesObject = [{
+        name: 'Year 1800',
+        data: [107, 31, 635, 203, 2]
+    }, {
+        name: 'Year 1900',
+        data: [133, 156, 947, 408, 6]
+    }, {
+        name: 'Year 2008',
+        data: [973, 914, 4054, 732, 34]
+  }];
+
+  var chartObject = {
+    chart: {
+        renderTo: 'container',
+        type: 'bar'
+    },
+    title: {
+        text: 'Historic World Population by Region'
+    },
+    subtitle: {
+        text: 'Source: Wikipedia.org'
+    },
+    xAxis: {
+        categories: ['Africa', 'America', 'Asia', 'Europe', 'Oceania'],
+        title: {
+            text: null
+        }
+    },
+    yAxis: {
+        min: 0,
+        title: {
+            text: 'Population (millions)',
+            align: 'high'
+        },
+        labels: {
+            overflow: 'justify'
+        }
+    },
+    tooltip: {
+        formatter: function() {
+            return ''+
+                this.series.name +': '+ this.y +' millions';
+        }
+    },
+    plotOptions: {
+        bar: {
+            dataLabels: {
+                enabled: true
+            }
+        }
+    },
+    legend: {
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'top',
+        x: -100,
+        y: 100,
+        floating: true,
+        borderWidth: 1,
+        backgroundColor: '#FFFFFF',
+        shadow: true
+    },
+    credits: {
+        enabled: false
+    }            
+  }
+
+  var seriesModel = mori.js_to_clj(seriesObject);
+  var chartModel = mori.js_to_clj(chartObject);
+
+  var chart = React.renderComponent(
+    <Chart 
+      seriesModel={seriesModel}
+      chartModel={chartModel} />,
+    document.getElementById('example')
+  );
+
+  </script>
+
+</body>
+
+</html>
