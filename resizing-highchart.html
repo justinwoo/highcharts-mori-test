@@ -69,16 +69,18 @@
     initializeChart: function() {
       var chartModel = this.props.chartModel;
       var seriesModel = this.props.seriesModel;
+      var width = this.props.width || null;
+      var height = this.props.height || null;
       var selector = this.refs.myChart.getDOMNode();;
 
       var chartOptions = React.addons.update(chartModel, {
         chart: {
-          renderTo: {$set: selector}
+          renderTo: {$set: selector},
+          width: {$set: width},
+          height: {$set: height}
         },
         series: {$set: seriesModel}
       });
-
-      console.log(chartOptions);
 
       var chartInstance = new Highcharts.Chart(chartOptions);
       this.setState({
