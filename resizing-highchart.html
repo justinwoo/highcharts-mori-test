@@ -2,13 +2,12 @@
 <html>
 
 <head>
-  <script src="build/react.js"></script>
+  <script src="build/react-with-addons.js"></script>
   <script src="build/JSXTransformer.js"></script>
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
   <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
   <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
   <script src="./vendor/highcharts.js"></script>
-  <script src="./vendor/mori.js"></script>
 
   <style type="text/css">
     #resizable { width: 500px; height: 500px; padding: 0.5em; }
@@ -67,31 +66,20 @@
       return false;
     },
 
-    getUpdatedChartSettings: function() {
-      var chartModel = this.props.chartModel;
-      var selector = this.refs.myChart.getDOMNode();
-      var width = this.props.width || null;
-      var height = this.props.height || null;
-      var chartSettings = mori.get(chartModel, "chart");
-      var updatedChartSettings = mori.assoc(chartSettings,
-                                            "renderTo",
-                                            selector,
-                                            "width",
-                                            width,
-                                            "height",
-                                            height);
-      return updatedChartSettings;
-    },
-
     initializeChart: function() {
       var chartModel = this.props.chartModel;
       var seriesModel = this.props.seriesModel;
-      var updatedChartModel = mori.assoc(chartModel,
-                                    "chart",
-                                    this.getUpdatedChartSettings(),
-                                    "series",
-                                    seriesModel);
-      var chartOptions = mori.clj_to_js(updatedChartModel);
+      var selector = this.refs.myChart.getDOMNode();;
+
+      var chartOptions = React.addons.update(chartModel, {
+        chart: {
+          renderTo: {$set: selector}
+        },
+        series: {$set: seriesModel}
+      });
+
+      console.log(chartOptions);
+
       var chartInstance = new Highcharts.Chart(chartOptions);
       this.setState({
         chartInstance: chartInstance
@@ -177,13 +165,10 @@
     }            
   }
 
-  var seriesModel = mori.js_to_clj(seriesObject);
-  var chartModel = mori.js_to_clj(chartObject);
-
   var chart = React.renderComponent(
     <Chart 
-      seriesModel={seriesModel}
-      chartModel={chartModel} />,
+      seriesModel={seriesObject}
+      chartModel={chartObject} />,
     document.getElementById('example')
   );
 
