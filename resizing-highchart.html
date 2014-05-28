@@ -56,8 +56,7 @@
       if (chartModel !== nextChartModel 
           || width !== nextWidth
           || height !== nextHeight) {
-        this.state.chartInstance.destroy();
-        this.initializeChart();
+        this.state.chartInstance.setSize(nextWidth, nextHeight);
       }
     },
 
@@ -76,8 +75,6 @@
       var chartOptions = React.addons.update(chartModel, {
         chart: {
           renderTo: {$set: selector},
-          width: {$set: width},
-          height: {$set: height}
         },
         series: {$set: seriesModel}
       });
